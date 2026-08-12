@@ -133,7 +133,9 @@
     background:linear-gradient(150deg, #2a1436, #1a0d24);
     display:flex; align-items:center; justify-content:center;
   }
-  .avatar svg{width:70%; height:70%;}
+  .avatar img{
+    width:100%; height:100%; object-fit:cover; border-radius:50%;
+  }
   .avatar-ring{position:absolute; inset:-12px; border-radius:50%; border:1px solid rgba(255,111,181,0.18); animation:spin 8s linear infinite;}
   .avatar-ring.r2{inset:-20px; border-color:rgba(181,123,255,0.12); animation:spin 12s linear infinite reverse;}
 
@@ -308,10 +310,8 @@
   <section class="hero" id="top">
     <div class="avatar-wrap" id="avatarWrap">
       <div class="avatar">
-        <svg viewBox="0 0 24 24" fill="none" stroke="#fbeaff" stroke-width="1.4">
-          <path d="M12 2a5 5 0 0 0-5 5v3a5 5 0 0 0 10 0V7a5 5 0 0 0-5-5z"/>
-          <path d="M4 21c0-4 3.5-7 8-7s8 3 8 7"/>
-        </svg>
+        <!-- Circular GIF avatar pulling from loading-intro branch -->
+        <img src="https://raw.githubusercontent.com/auxvy/auxv-web/loading-intro/loading.gif" alt="Profile Intro GIF" />
       </div>
       <div class="avatar-ring"></div>
       <div class="avatar-ring r2"></div>
@@ -458,7 +458,8 @@ function finishLoading(){
 /* ================= music player & playlist setup ================= */
 const playlist = [
   { title: "baka bukas", src: "./baka bukas.mp3" },
-  { title: "Mula Sa Malayo (Reimagined)", src: "./Mula Sa Malayo (Reimagined).mp3" }
+  { title: "Mula Sa Malayo (Reimagined)", src: "./Mula Sa Malayo (Reimagined).mp3" },
+  { title: "Di Na Posible", src: "https://raw.githubusercontent.com/auxvy/auxv-web/music-path/Di%20Na%20Posible.mp3" }
 ];
 
 let currentTrackIndex = 0;
@@ -518,8 +519,6 @@ function loadTrack(index, autoPlay = true){
       audio.play().then(() => {
         setPlayingUI(true);
       }).catch(() => {
-        // Autoplay blocked by the browser. Catching this prevents console errors
-        // and safely leaves the UI in a paused state for the user to start manually.
         setPlayingUI(false);
       });
     }
@@ -531,7 +530,6 @@ audio.addEventListener('ended', () => {
   loadTrack(currentTrackIndex, true);
 });
 
-// Update the timeline purely based on the real audio element's events
 audio.addEventListener('timeupdate', updateProgress);
 audio.addEventListener('loadedmetadata', updateProgress);
 
