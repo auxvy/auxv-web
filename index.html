@@ -199,7 +199,7 @@
   .player-title{font-size:.8rem; font-weight:600; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
   .player-time{font-size:.65rem; color:var(--muted-2); white-space:nowrap;}
   .player-track{margin-top:.4rem; height:3px; background:#242428; border-radius:3px; overflow:hidden;}
-  .player-fill{height:100%; width:0%; background:var(--accent); box-shadow:0 0 6px var(--accent);}
+  .player-fill{height:100%; width:0%; background:var(--accent); box-shadow:0 0 6px var(--accent); transition: width 0.1s linear;}
   .player-play{
     width:28px; height:28px; border-radius:50%; border:1px solid var(--border);
     background:transparent; color:#cfcfd4; display:flex; align-items:center; justify-content:center;
@@ -342,7 +342,7 @@
       <div class="player-body" id="playerBody">
         <div class="player-row">
           <span class="player-title" id="trackTitle">baka bukas</span>
-          <span class="player-time" id="trackTime">0:00 / 4:01</span>
+          <span class="player-time" id="trackTime">0:00 / 0:00</span>
         </div>
         <div class="player-track"><div class="player-fill" id="trackFill"></div></div>
       </div>
@@ -456,23 +456,14 @@ function finishLoading(){
 }
 
 /* ================= music player & playlist setup ================= */
-// Easily edit or add new audio files here whenever you add new tracks!
 const playlist = [
-  {
-    title: "baka bukas",
-    src: "./baka bukas.mp3",
-    fallbackDuration: 241
-  },
-  {
-    title: "Mula Sa Malayo (Reimagined)",
-    src: "./Mula Sa Malayo (Reimagined).mp3",
-    fallbackDuration: 240
-  }
+  { title: "baka bukas", src: "./baka bukas.mp3" },
+  { title: "Mula Sa Malayo (Reimagined)", src: "./Mula Sa Malayo (Reimagined).mp3" }
 ];
 
 let currentTrackIndex = 0;
 const audio = new Audio();
-audio.loop = false; // Disable loop to let it trigger auto-advance
+audio.loop = false;
 
 const playBtn = document.getElementById('playBtn');
 const playIcon = document.getElementById('playIcon');
@@ -481,11 +472,10 @@ const trackTime = document.getElementById('trackTime');
 const trackTitle = document.getElementById('trackTitle');
 const playerBody = document.getElementById('playerBody');
 
-let simTime = 0;
 let playing = false;
-let simInterval = null;
 
 function fmt(s){
+  if(isNaN(s)) return '0:00';
   const m = Math.floor(s/60), sec = Math.floor(s%60);
   return m + ':' + String(sec).padStart(2,'0');
 }
@@ -497,72 +487,53 @@ function setPlayingUI(isPlaying){
     : '<path d="M8 5v14l11-7z"/>';
 }
 
+function updateProgress(){
+  const current = audio.currentTime || 0;
+  const dur = audio.duration || 0;
+  
+  if (dur > 0) {
+    trackFill.style.width = Math.min(100, (current/dur)*100) + '%';
+    trackTime.textContent = fmt(current) + ' / ' + fmt(dur);
+  } else {
+    trackFill.style.width = '0%';
+    trackTime.textContent = '0:00 / 0:00';
+  }
+}
+
 function loadTrack(index, autoPlay = true){
   const track = playlist[index];
-  
-  // Trigger transition animation (slide out / fade)
   playerBody.classList.add('slide-out');
 
   setTimeout(() => {
     trackTitle.textContent = track.title;
     audio.src = track.src;
     audio.load();
-    simTime = 0;
-    updateProgress(0);
+    updateProgress();
 
-    // Fade back in
     playerBody.classList.remove('slide-out');
     playerBody.classList.add('slide-in');
     setTimeout(() => playerBody.classList.remove('slide-in'), 300);
 
     if(autoPlay){
-      audio.play().then(() => setPlayingUI(true)).catch(() => {
+      audio.play().then(() => {
+        setPlayingUI(true);
+      }).catch(() => {
+        // Autoplay blocked by the browser. Catching this prevents console errors
+        // and safely leaves the UI in a paused state for the user to start manually.
         setPlayingUI(false);
       });
     }
   }, 250);
 }
 
-// Auto-advance to the next track when the current track ends
 audio.addEventListener('ended', () => {
   currentTrackIndex = (currentTrackIndex + 1) % playlist.length;
   loadTrack(currentTrackIndex, true);
 });
 
-function attemptAutoplay(){
-  loadTrack(currentTrackIndex, true);
-  runSimClock();
-}
-
-function runSimClock(){
-  if(simInterval) return;
-  simInterval = setInterval(()=>{
-    if(playing || audio.paused){
-      if(!audio.paused && !isNaN(audio.currentTime)){
-        simTime = audio.currentTime;
-      } else {
-        const currentTrack = playlist[currentTrackIndex];
-        const dur = (audio.duration && !isNaN(audio.duration)) ? audio.duration : currentTrack.fallbackDuration;
-        simTime = (simTime + 1) % dur;
-      }
-      updateProgress(simTime);
-    }
-  }, 1000);
-}
-runSimClock();
-
-function updateProgress(current){
-  const currentTrack = playlist[currentTrackIndex];
-  const dur = (audio.duration && !isNaN(audio.duration)) ? audio.duration : currentTrack.fallbackDuration;
-  trackFill.style.width = Math.min(100, (current/dur)*100) + '%';
-  trackTime.textContent = fmt(current) + ' / ' + fmt(dur);
-}
-
-audio.addEventListener('timeupdate', () => {
-  if(!isNaN(audio.currentTime)) {
-    updateProgress(audio.currentTime);
-  }
-});
+// Update the timeline purely based on the real audio element's events
+audio.addEventListener('timeupdate', updateProgress);
+audio.addEventListener('loadedmetadata', updateProgress);
 
 playBtn.addEventListener('click', ()=>{
   if(audio.paused){
@@ -573,8 +544,9 @@ playBtn.addEventListener('click', ()=>{
   }
 });
 
-// Initialize first track data view
-loadTrack(currentTrackIndex, false);
+function attemptAutoplay(){
+  loadTrack(currentTrackIndex, true);
+}
 
 /* ================= local time (GMT+8) ================= */
 function updateClock(){
