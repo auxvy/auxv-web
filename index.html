@@ -26,11 +26,8 @@
   }
   *{box-sizing:border-box; margin:0; padding:0;}
   html,body{
-    background:
-      radial-gradient(circle at 15% 8%, rgba(181,123,255,0.18), transparent 45%),
-      radial-gradient(circle at 85% 18%, rgba(255,111,181,0.14), transparent 40%),
-      radial-gradient(circle at 50% 90%, rgba(181,123,255,0.10), transparent 50%),
-      var(--bg);
+    background: linear-gradient(rgba(21, 10, 32, 0.75), rgba(21, 10, 32, 0.75)), url('background.gif') no-repeat center center fixed;
+    background-size: cover;
     color:var(--text);
     font-family:'JetBrains Mono', monospace;
     overflow-x:hidden;
@@ -44,7 +41,7 @@
     inset:0;
     z-index:0;
     pointer-events:none;
-    opacity:0.35;
+    opacity:0.25;
   }
 
   /* ---------- loading screen ---------- */
@@ -186,7 +183,18 @@
     display:flex; align-items:center; justify-content:center; flex-shrink:0;
   }
   .player-icon svg{width:18px; height:18px; fill:#000;}
-  .player-body{flex:1; min-width:0; text-align:left;}
+  .player-body{
+    flex:1; min-width:0; text-align:left;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+  }
+  .player-body.slide-out {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  .player-body.slide-in {
+    opacity: 1;
+    transform: translateY(0);
+  }
   .player-row{display:flex; justify-content:space-between; align-items:baseline; gap:.5rem;}
   .player-title{font-size:.8rem; font-weight:600; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
   .player-time{font-size:.65rem; color:var(--muted-2); white-space:nowrap;}
@@ -331,7 +339,7 @@
       <div class="player-icon">
         <svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm4.6 14.4a.6.6 0 0 1-.83.2c-2.27-1.39-5.13-1.7-8.5-.93a.6.6 0 1 1-.27-1.17c3.68-.84 6.84-.48 9.4 1.08.3.18.39.56.2.82zm1.22-2.72a.75.75 0 0 1-1.03.25c-2.6-1.6-6.56-2.06-9.63-1.13a.75.75 0 1 1-.43-1.44c3.52-1.06 7.9-.55 10.85 1.28.36.22.47.7.24 1.04zm.1-2.83C14.98 9 9.13 8.8 6.03 9.77a.9.9 0 1 1-.53-1.72c3.56-1.1 9.98-.87 13.9 1.44a.9.9 0 1 1-.98 1.51z"/></svg>
       </div>
-      <div class="player-body">
+      <div class="player-body" id="playerBody">
         <div class="player-row">
           <span class="player-title" id="trackTitle">baka bukas</span>
           <span class="player-time" id="trackTime">0:00 / 4:01</span>
@@ -447,21 +455,35 @@ function finishLoading(){
   attemptAutoplay();
 }
 
-/* ================= music player ================= */
-// NOTE: Real Spotify audio can't be embedded directly (licensing + API auth required).
-// Swap AUDIO_SRC for a track you have rights to host, or wire this up to the
-// Spotify Web Playback SDK / embed iframe for real playback.
-const AUDIO_SRC = "./baka bukas.mp3";
-const audio = new Audio(AUDIO_SRC);
-audio.loop = true;
+/* ================= music player & playlist setup ================= */
+// Easily edit or add new audio files here whenever you add new tracks!
+const playlist = [
+  {
+    title: "baka bukas",
+    src: "./baka bukas.mp3",
+    fallbackDuration: 241
+  },
+  {
+    title: "Mula Sa Malayo (Reimagined)",
+    src: "./Mula Sa Malayo (Reimagined).mp3",
+    fallbackDuration: 240
+  }
+];
+
+let currentTrackIndex = 0;
+const audio = new Audio();
+audio.loop = false; // Disable loop to let it trigger auto-advance
 
 const playBtn = document.getElementById('playBtn');
 const playIcon = document.getElementById('playIcon');
 const trackFill = document.getElementById('trackFill');
 const trackTime = document.getElementById('trackTime');
-const DURATION = 241; // 4:01 fallback display duration
+const trackTitle = document.getElementById('trackTitle');
+const playerBody = document.getElementById('playerBody');
+
 let simTime = 0;
 let playing = false;
+let simInterval = null;
 
 function fmt(s){
   const m = Math.floor(s/60), sec = Math.floor(s%60);
@@ -475,27 +497,54 @@ function setPlayingUI(isPlaying){
     : '<path d="M8 5v14l11-7z"/>';
 }
 
-function attemptAutoplay(){
-  const p = audio.play();
-  if(p !== undefined){
-    p.then(()=> setPlayingUI(true))
-     .catch(()=>{
-       // autoplay blocked by browser policy — fall back to a simulated
-       // progress bar and let the user tap play to enable real audio.
-       setPlayingUI(false);
-       runSimClock();
-     });
-  } else {
-    runSimClock();
-  }
+function loadTrack(index, autoPlay = true){
+  const track = playlist[index];
+  
+  // Trigger transition animation (slide out / fade)
+  playerBody.classList.add('slide-out');
+
+  setTimeout(() => {
+    trackTitle.textContent = track.title;
+    audio.src = track.src;
+    audio.load();
+    simTime = 0;
+    updateProgress(0);
+
+    // Fade back in
+    playerBody.classList.remove('slide-out');
+    playerBody.classList.add('slide-in');
+    setTimeout(() => playerBody.classList.remove('slide-in'), 300);
+
+    if(autoPlay){
+      audio.play().then(() => setPlayingUI(true)).catch(() => {
+        setPlayingUI(false);
+      });
+    }
+  }, 250);
 }
 
-let simInterval = null;
+// Auto-advance to the next track when the current track ends
+audio.addEventListener('ended', () => {
+  currentTrackIndex = (currentTrackIndex + 1) % playlist.length;
+  loadTrack(currentTrackIndex, true);
+});
+
+function attemptAutoplay(){
+  loadTrack(currentTrackIndex, true);
+  runSimClock();
+}
+
 function runSimClock(){
   if(simInterval) return;
   simInterval = setInterval(()=>{
-    if(playing || !audio.src){
-      simTime = (simTime + 1) % DURATION;
+    if(playing || audio.paused){
+      if(!audio.paused && !isNaN(audio.currentTime)){
+        simTime = audio.currentTime;
+      } else {
+        const currentTrack = playlist[currentTrackIndex];
+        const dur = (audio.duration && !isNaN(audio.duration)) ? audio.duration : currentTrack.fallbackDuration;
+        simTime = (simTime + 1) % dur;
+      }
       updateProgress(simTime);
     }
   }, 1000);
@@ -503,19 +552,19 @@ function runSimClock(){
 runSimClock();
 
 function updateProgress(current){
-  const dur = (audio.duration && !isNaN(audio.duration)) ? audio.duration : DURATION;
+  const currentTrack = playlist[currentTrackIndex];
+  const dur = (audio.duration && !isNaN(audio.duration)) ? audio.duration : currentTrack.fallbackDuration;
   trackFill.style.width = Math.min(100, (current/dur)*100) + '%';
   trackTime.textContent = fmt(current) + ' / ' + fmt(dur);
 }
 
-audio.addEventListener('timeupdate', ()=> updateProgress(audio.currentTime));
+audio.addEventListener('timeupdate', () => {
+  if(!isNaN(audio.currentTime)) {
+    updateProgress(audio.currentTime);
+  }
+});
 
 playBtn.addEventListener('click', ()=>{
-  if(!audio.src){
-    // no real track wired up — just toggle the simulated UI state
-    setPlayingUI(!playing);
-    return;
-  }
   if(audio.paused){
     audio.play().then(()=> setPlayingUI(true)).catch(()=>{});
   } else {
@@ -524,7 +573,8 @@ playBtn.addEventListener('click', ()=>{
   }
 });
 
-updateProgress(0);
+// Initialize first track data view
+loadTrack(currentTrackIndex, false);
 
 /* ================= local time (GMT+8) ================= */
 function updateClock(){
