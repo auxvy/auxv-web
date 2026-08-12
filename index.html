@@ -240,15 +240,50 @@
   .player-row{display:flex; justify-content:space-between; align-items:baseline; gap:.5rem;}
   .player-title{font-size:.8rem; font-weight:600; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
   .player-time{font-size:.65rem; color:var(--muted-2); white-space:nowrap;}
-  .player-track{margin-top:.4rem; height:3px; background:#242428; border-radius:3px; overflow:hidden;}
-  .player-fill{height:100%; width:0%; background:var(--accent); box-shadow:0 0 6px var(--accent); transition: width 0.1s linear;}
-  .player-play{
+  .player-track{
+    position:relative; margin-top:.5rem; height:14px; display:flex; align-items:center;
+  }
+  .player-track-bg{
+    position:absolute; left:0; right:0; height:3px; background:#3a2650; border-radius:3px; overflow:hidden; pointer-events:none;
+  }
+  .player-fill{height:100%; width:0%; background:linear-gradient(90deg, var(--accent), var(--violet)); box-shadow:0 0 6px var(--accent);}
+  .player-seek{
+    -webkit-appearance:none; appearance:none;
+    position:relative; z-index:1; width:100%; height:14px; margin:0;
+    background:transparent; cursor:pointer;
+  }
+  .player-seek::-webkit-slider-runnable-track{height:14px; background:transparent;}
+  .player-seek::-moz-range-track{height:14px; background:transparent;}
+  .player-seek::-webkit-slider-thumb{
+    -webkit-appearance:none; appearance:none;
+    width:11px; height:11px; border-radius:50%;
+    background:#fff; border:2px solid var(--accent);
+    margin-top:0; cursor:pointer;
+    box-shadow:0 0 6px rgba(255,111,181,0.6);
+    opacity:0; transition:opacity .2s ease;
+  }
+  .player-seek::-moz-range-thumb{
+    width:11px; height:11px; border-radius:50%;
+    background:#fff; border:2px solid var(--accent);
+    cursor:pointer; box-shadow:0 0 6px rgba(255,111,181,0.6);
+    opacity:0; transition:opacity .2s ease;
+  }
+  .player-track:hover .player-seek::-webkit-slider-thumb,
+  .player-seek:focus::-webkit-slider-thumb,
+  .player-track.scrubbing .player-seek::-webkit-slider-thumb{opacity:1;}
+  .player-track:hover .player-seek::-moz-range-thumb,
+  .player-seek:focus::-moz-range-thumb,
+  .player-track.scrubbing .player-seek::-moz-range-thumb{opacity:1;}
+  .player-controls{display:flex; align-items:center; gap:.4rem; flex-shrink:0;}
+  .player-play, .player-next{
     width:28px; height:28px; border-radius:50%; border:1px solid var(--border);
     background:transparent; color:#cfcfd4; display:flex; align-items:center; justify-content:center;
     cursor:pointer; flex-shrink:0; transition:border-color .25s ease, color .25s ease;
   }
-  .player-play:hover{border-color:var(--accent); color:var(--accent);}
+  .player-next{width:24px; height:24px;}
+  .player-play:hover, .player-next:hover{border-color:var(--accent); color:var(--accent);}
   .player-play svg{width:12px; height:12px;}
+  .player-next svg{width:11px; height:11px;}
 
   /* ---------- stats ---------- */
   .stats{
@@ -352,7 +387,6 @@
   <section class="hero" id="top">
     <div class="avatar-wrap" id="avatarWrap">
       <div class="avatar">
-        <!-- Circular GIF avatar pulling from loading-intro branch -->
         <img src="https://raw.githubusercontent.com/auxvy/auxv-web/loading-intro/loading.gif" alt="Profile Intro GIF" />
       </div>
       <div class="avatar-ring"></div>
@@ -363,12 +397,10 @@
     <p class="tagline" id="tagline">Hi bes, welcome sa profile!</p>
 
     <div class="socials" id="socials">
-      <!-- Roblox replacing GitHub -->
       <a class="social-btn" href="https://www.roblox.com/share?code=5d9163c6babc1e4b8e89ccd75165a203&type=Profile&source=ProfileShare&stamp=1785673102208" target="_blank" title="Roblox" aria-label="Roblox">
         <svg viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" clip-rule="evenodd" d="M5.4 0L0 18.9l18.6 5.1L24 5.1 5.4 0zm8.7 13.8l-2.6-.7.7-2.6 2.6.7-.7 2.6z"/></svg>
       </a>
       
-      <!-- Discord Copy Tool -->
       <div class="social-wrap">
         <a class="social-btn" href="#" id="discordBtn" title="Copy Discord Username" aria-label="Copy Discord Username">
           <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.3 4.4A19.7 19.7 0 0 0 15.6 3l-.3.5a14 14 0 0 1 4.2 1.6 15.6 15.6 0 0 0-13 0A14 14 0 0 1 8.7 3.5L8.4 3a19.7 19.7 0 0 0-4.7 1.4C1.4 8.5.8 12.5 1.1 16.4a19.9 19.9 0 0 0 5.8 2.9l.9-1.4a12.7 12.7 0 0 1-2-1c.2-.1.3-.2.5-.3a14 14 0 0 0 11.4 0l.5.3a12.7 12.7 0 0 1-2 1l.9 1.4a19.8 19.8 0 0 0 5.8-2.9c.4-4.4-.6-8.4-2.6-12zM9 14.1c-.9 0-1.6-.8-1.6-1.8S8.1 10.5 9 10.5s1.6.8 1.6 1.8-.7 1.8-1.6 1.8zm6 0c-.9 0-1.6-.8-1.6-1.8s.7-1.8 1.6-1.8 1.6.8 1.6 1.8-.7 1.8-1.6 1.8z"/></svg>
@@ -376,12 +408,10 @@
         <div class="copy-popup" id="copyPopup">Copied!</div>
       </div>
       
-      <!-- Spotify Link -->
       <a class="social-btn" href="https://open.spotify.com/user/31wzamsbcstvo52yieifqucds3pq?si=9d4e0aafa0844e9c" target="_blank" title="Spotify" aria-label="Spotify">
         <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm4.6 14.4a.6.6 0 0 1-.83.2c-2.27-1.39-5.13-1.7-8.5-.93a.6.6 0 1 1-.27-1.17c3.68-.84 6.84-.48 9.4 1.08.3.18.39.56.2.82zm1.22-2.72a.75.75 0 0 1-1.03.25c-2.6-1.6-6.56-2.06-9.63-1.13a.75.75 0 1 1-.43-1.44c3.52-1.06 7.9-.55 10.85 1.28.36.22.47.7.24 1.04zm.1-2.83C14.98 9 9.13 8.8 6.03 9.77a.9.9 0 1 1-.53-1.72c3.56-1.1 9.98-.87 13.9 1.44a.9.9 0 1 1-.98 1.51z"/></svg>
       </a>
       
-      <!-- Contact Email -->
       <a class="social-btn" href="mailto:aurexia.veil@gmail.com" title="Contact" aria-label="Contact">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>
       </a>
@@ -396,11 +426,19 @@
           <span class="player-title" id="trackTitle">baka bukas</span>
           <span class="player-time" id="trackTime">0:00 / 0:00</span>
         </div>
-        <div class="player-track"><div class="player-fill" id="trackFill"></div></div>
+        <div class="player-track" id="playerTrack">
+          <div class="player-track-bg"><div class="player-fill" id="trackFill"></div></div>
+          <input type="range" class="player-seek" id="seekSlider" min="0" max="100" value="0" step="0.1" aria-label="Seek">
+        </div>
       </div>
-      <button class="player-play" id="playBtn" aria-label="Play/Pause">
-        <svg id="playIcon" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-      </button>
+      <div class="player-controls">
+        <button class="player-play" id="playBtn" aria-label="Play/Pause">
+          <svg id="playIcon" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+        </button>
+        <button class="player-next" id="nextBtn" aria-label="Next track">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 5v14l8-7-8-7zm10 0v14h2V5h-2z"/></svg>
+        </button>
+      </div>
     </div>
 
     <div class="stats" id="stats">
@@ -515,7 +553,6 @@ discordBtn.addEventListener('click', (e) => {
   e.preventDefault();
   navigator.clipboard.writeText("aurelias.veil").then(() => {
     copyPopup.classList.add('show');
-    // Hide the pop-up after 2 seconds
     setTimeout(() => {
       copyPopup.classList.remove('show');
     }, 2000);
@@ -528,24 +565,30 @@ discordBtn.addEventListener('click', (e) => {
 const playlist = [
   { title: "baka bukas", src: "./baka bukas.mp3" },
   { title: "Mula Sa Malayo (Reimagined)", src: "./Mula Sa Malayo (Reimagined).mp3" },
-  { title: "Di Na Posible", src: "https://raw.githubusercontent.com/auxvy/auxv-web/music-path/%27Di%20Na%20Posible.mp3" }
+  { title: "Di Na Posible", src: "https://raw.githubusercontent.com/auxvy/auxv-web/music-path/Di%20Na%20Posible.mp3" }
 ];
 
 let currentTrackIndex = 0;
 const audio = new Audio();
 audio.loop = false;
+audio.preload = 'metadata';
 
 const playBtn = document.getElementById('playBtn');
+const nextBtn = document.getElementById('nextBtn');
 const playIcon = document.getElementById('playIcon');
 const trackFill = document.getElementById('trackFill');
 const trackTime = document.getElementById('trackTime');
 const trackTitle = document.getElementById('trackTitle');
 const playerBody = document.getElementById('playerBody');
+const playerTrack = document.getElementById('playerTrack');
+const seekSlider = document.getElementById('seekSlider');
 
 let playing = false;
+let isScrubbing = false;
+let loadToken = 0;
 
 function fmt(s){
-  if(isNaN(s)) return '0:00';
+  if(isNaN(s) || !isFinite(s)) return '0:00';
   const m = Math.floor(s/60), sec = Math.floor(s%60);
   return m + ':' + String(sec).padStart(2,'0');
 }
@@ -558,25 +601,44 @@ function setPlayingUI(isPlaying){
 }
 
 function updateProgress(){
+  if(isScrubbing) return;
   const current = audio.currentTime || 0;
   const dur = audio.duration || 0;
-  
+
   if (dur > 0) {
-    trackFill.style.width = Math.min(100, (current/dur)*100) + '%';
+    const pct = Math.min(100, (current/dur)*100);
+    trackFill.style.width = pct + '%';
+    seekSlider.value = pct;
     trackTime.textContent = fmt(current) + ' / ' + fmt(dur);
   } else {
     trackFill.style.width = '0%';
+    seekSlider.value = 0;
     trackTime.textContent = '0:00 / 0:00';
   }
 }
 
+function encodeTrackSrc(src){
+  try{
+    if(/^https?:\/\//i.test(src)){
+      const url = new URL(src);
+      url.pathname = url.pathname.split('/').map(encodeURIComponent).join('/');
+      return url.toString();
+    }
+    return src.split('/').map(seg => (seg === '.' || seg === '..' || seg === '') ? seg : encodeURIComponent(decodeURIComponent(seg))).join('/');
+  }catch(e){
+    return encodeURI(src);
+  }
+}
+
 function loadTrack(index, autoPlay = true){
+  const myToken = ++loadToken;
   const track = playlist[index];
   playerBody.classList.add('slide-out');
 
   setTimeout(() => {
+    if(myToken !== loadToken) return;
     trackTitle.textContent = track.title;
-    audio.src = track.src;
+    audio.src = encodeTrackSrc(track.src);
     audio.load();
     updateProgress();
 
@@ -586,17 +648,24 @@ function loadTrack(index, autoPlay = true){
 
     if(autoPlay){
       audio.play().then(() => {
-        setPlayingUI(true);
+        if(myToken === loadToken) setPlayingUI(true);
       }).catch(() => {
-        setPlayingUI(false);
+        if(myToken === loadToken) setPlayingUI(false);
       });
     }
   }, 250);
 }
 
-audio.addEventListener('ended', () => {
+function playNext(){
   currentTrackIndex = (currentTrackIndex + 1) % playlist.length;
   loadTrack(currentTrackIndex, true);
+}
+
+audio.addEventListener('ended', playNext);
+audio.addEventListener('error', () => {
+  if(!audio.src) return;
+  console.warn('Track failed to load, skipping:', playlist[currentTrackIndex]?.src);
+  playNext();
 });
 
 audio.addEventListener('timeupdate', updateProgress);
@@ -610,6 +679,31 @@ playBtn.addEventListener('click', ()=>{
     setPlayingUI(false);
   }
 });
+
+nextBtn.addEventListener('click', playNext);
+
+seekSlider.addEventListener('input', () => {
+  isScrubbing = true;
+  playerTrack.classList.add('scrubbing');
+  const dur = audio.duration || 0;
+  trackFill.style.width = seekSlider.value + '%';
+  if(dur > 0){
+    trackTime.textContent = fmt((seekSlider.value/100)*dur) + ' / ' + fmt(dur);
+  }
+});
+
+function commitSeek(){
+  const dur = audio.duration || 0;
+  if(dur > 0){
+    audio.currentTime = (seekSlider.value/100)*dur;
+  }
+  isScrubbing = false;
+  playerTrack.classList.remove('scrubbing');
+  updateProgress();
+}
+seekSlider.addEventListener('change', commitSeek);
+seekSlider.addEventListener('pointerup', commitSeek);
+seekSlider.addEventListener('touchend', commitSeek);
 
 function attemptAutoplay(){
   loadTrack(currentTrackIndex, true);
@@ -630,19 +724,15 @@ function updateClock(){
 updateClock();
 setInterval(updateClock, 1000);
 
-/* ================= view counter (persistent) ================= */
-async function trackView(){
+/* ================= view counter (persistent via localStorage) ================= */
+function trackView(){
   const el = document.getElementById('viewCount');
-  try{
-    let current = 0;
-    try{
-      const existing = await window.storage.get('profile_views', true);
-      current = existing ? parseInt(existing.value, 10) || 0 : 0;
-    }catch(e){ current = 0; }
+  try {
+    let current = parseInt(localStorage.getItem('profile_views') || '0', 10);
     current += 1;
-    await window.storage.set('profile_views', String(current), true);
+    localStorage.setItem('profile_views', String(current));
     el.textContent = current.toLocaleString();
-  }catch(e){
+  } catch(e) {
     el.textContent = '1';
   }
 }
@@ -673,6 +763,7 @@ let typed = false;
 function startTyping(){
   if(typed) return;
   typed = true;
+
   const out = document.getElementById('typedOutput');
   let i = 0;
   const cursor = document.createElement('span');
