@@ -35,7 +35,7 @@
   }
   ::selection{background:var(--accent); color:#2a0d22;}
 
-  /* ---------- background waves ---------- */
+ 
   #waveCanvas{
     position:fixed;
     inset:0;
@@ -44,7 +44,7 @@
     opacity:0.25;
   }
 
-  /* ---------- loading screen ---------- */
+ 
   #loader{
     position:fixed; inset:0; z-index:9999;
     background:
@@ -99,7 +99,7 @@
     z-index:1; min-height:1em;
   }
 
-  /* ---------- nav ---------- */
+  
   nav{
     position:fixed; top:1rem; left:1rem; z-index:50;
     opacity:0; transform:translateY(-40px);
@@ -121,7 +121,7 @@
   }
   .nav-pill button:hover{color:#fff;}
 
-  /* ---------- hero ---------- */
+ 
   main{position:relative; z-index:1;}
   .hero{
     min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center;
@@ -157,7 +157,7 @@
   }
   .tagline.show{opacity:1;}
 
-  /* ---------- socials & copy pop-up ---------- */
+  
   .socials{
     display:flex; gap:.9rem; margin-top:2rem;
     opacity:0; transform:translateY(10px); transition:opacity .7s ease .3s, transform .7s ease .3s;
@@ -210,7 +210,7 @@
     transform: translateX(-50%) translateY(0);
   }
 
-  /* ---------- music player ---------- */
+  
   .player{
     margin-top:2rem; width:min(90vw, 300px);
     display:flex; align-items:center; gap:.8rem;
@@ -285,7 +285,7 @@
   .player-play svg{width:12px; height:12px;}
   .player-next svg{width:11px; height:11px;}
 
-  /* ---------- stats ---------- */
+
   .stats{
     display:flex; gap:.8rem; margin-top:1.6rem; flex-wrap:wrap; justify-content:center;
     opacity:0; transform:translateY(10px); transition:opacity .7s ease .5s, transform .7s ease .5s;
@@ -308,7 +308,7 @@
   .scroll-hint .chevron{animation:bounce 2s ease-in-out infinite;}
   @keyframes bounce{0%,100%{transform:translateY(0);}50%{transform:translateY(6px);}}
 
-  /* ---------- about section ---------- */
+
   .about{
     min-height:80vh; display:flex; flex-direction:column; align-items:center;
     padding:4rem 1.5rem 8rem;
@@ -362,7 +362,7 @@
 
 <canvas id="waveCanvas"></canvas>
 
-<!-- LOADER -->
+
 <div id="loader">
   <div class="loader-ring-wrap">
     <div class="loader-avatar">
@@ -475,7 +475,7 @@
 </main>
 
 <script>
-/* ================= background waves ================= */
+
 const canvas = document.getElementById('waveCanvas');
 const ctx = canvas.getContext('2d');
 function resize(){ canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
@@ -505,7 +505,7 @@ function drawWaves(){
 }
 drawWaves();
 
-/* ================= loading sequence ================= */
+
 const loader = document.getElementById('loader');
 const loaderFill = document.getElementById('loaderFill');
 const loaderPct = document.getElementById('loaderPct');
@@ -545,7 +545,7 @@ function finishLoading(){
   attemptAutoplay();
 }
 
-/* ================= discord copy ================= */
+
 const discordBtn = document.getElementById('discordBtn');
 const copyPopup = document.getElementById('copyPopup');
 
@@ -561,7 +561,7 @@ discordBtn.addEventListener('click', (e) => {
   });
 });
 
-/* ================= music player & playlist setup ================= */
+
 const playlist = [
   { title: "baka bukas", src: "./baka bukas.mp3" },
   { title: "Mula Sa Malayo (Reimagined)", src: "./Mula Sa Malayo (Reimagined).mp3" },
@@ -617,10 +617,10 @@ function updateProgress(){
   }
 }
 
-/* ================= music player helper fixes ================= */
+
 function encodeTrackSrc(src){
   try {
-    // Decode first to prevent double-encoding (%27 -> %2527)
+   
     const decoded = decodeURI(src);
     return encodeURI(decoded);
   } catch(e) {
@@ -628,7 +628,7 @@ function encodeTrackSrc(src){
   }
 }
 
-// User interaction listener to safely bypass browser autoplay restrictions
+
 let userInteracted = false;
 function enableAudioOnInteraction() {
   if (userInteracted) return;
@@ -724,7 +724,7 @@ function attemptAutoplay(){
   loadTrack(currentTrackIndex, true);
 }
 
-/* ================= local time (GMT+8) ================= */
+
 function updateClock(){
   const now = new Date();
   const utc = now.getTime() + now.getTimezoneOffset()*60000;
@@ -739,7 +739,7 @@ function updateClock(){
 updateClock();
 setInterval(updateClock, 1000);
 
-/* ================= view counter (persistent via localStorage) ================= */
+
 function trackView(){
   const el = document.getElementById('viewCount');
   try {
@@ -753,7 +753,7 @@ function trackView(){
 }
 trackView();
 
-/* ================= scroll reveal: about heading + terminal ================= */
+
 const revealTargets = [document.getElementById('aboutHeading'), document.getElementById('terminalCard')];
 const io = new IntersectionObserver((entries)=>{
   entries.forEach(entry=>{
@@ -766,7 +766,7 @@ const io = new IntersectionObserver((entries)=>{
 }, { threshold: 0.3 });
 revealTargets.forEach(t=> io.observe(t));
 
-/* ================= terminal typing animation ================= */
+
 const aboutText = `> 起源: 星間宇宙
 「時と共に流れる」
 [The Past, The Present, The Future] 
