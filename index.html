@@ -617,18 +617,33 @@ function updateProgress(){
   }
 }
 
+/* ================= music player helper fixes ================= */
 function encodeTrackSrc(src){
-  try{
-    if(/^https?:\/\//i.test(src)){
-      const url = new URL(src);
-      url.pathname = url.pathname.split('/').map(encodeURIComponent).join('/');
-      return url.toString();
-    }
-    return src.split('/').map(seg => (seg === '.' || seg === '..' || seg === '') ? seg : encodeURIComponent(decodeURIComponent(seg))).join('/');
-  }catch(e){
-    return encodeURI(src);
+  try {
+    // Decode first to prevent double-encoding (%27 -> %2527)
+    const decoded = decodeURI(src);
+    return encodeURI(decoded);
+  } catch(e) {
+    return src;
   }
 }
+
+// User interaction listener to safely bypass browser autoplay restrictions
+let userInteracted = false;
+function enableAudioOnInteraction() {
+  if (userInteracted) return;
+  userInteracted = true;
+  if (audio.paused && audio.src) {
+    audio.play().then(() => setPlayingUI(true)).catch(() => {});
+  }
+  window.removeEventListener('click', enableAudioOnInteraction);
+  window.removeEventListener('keydown', enableAudioOnInteraction);
+  window.removeEventListener('touchstart', enableAudioOnInteraction);
+}
+
+window.addEventListener('click', enableAudioOnInteraction);
+window.addEventListener('keydown', enableAudioOnInteraction);
+window.addEventListener('touchstart', enableAudioOnInteraction);
 
 function loadTrack(index, autoPlay = true){
   const myToken = ++loadToken;
